@@ -71,9 +71,13 @@ class from_postgres_cdc(PostgresSource):
         initial_xmin=-1,
         pk="id",
         polling_interval=60,
+        retry_count=0,
+        retry_wait=10,
         **kwargs,
     ):
-        loader = PostgresLoader(**connection_params)
+        loader = PostgresLoader(
+            **connection_params, retry_count=retry_count, retry_wait=retry_wait
+        )
         strategy = XminIncrement(
             self.convert_table(table),
             loader,
@@ -97,9 +101,13 @@ class from_postgres_increment(PostgresSource):
         initial_value=-1,
         column="id",
         polling_interval=60,
+        retry_count=0,
+        retry_wait=10,
         **kwargs,
     ):
-        loader = PostgresLoader(**connection_params)
+        loader = PostgresLoader(
+            **connection_params, retry_count=retry_count, retry_wait=retry_wait
+        )
         strategy = Increment(
             self.convert_table(table),
             loader,
