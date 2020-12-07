@@ -13,4 +13,11 @@ setup(
         "dev": ["pytest", "flake8", "black"],
         "docs": ["sphinx", "sphinx_rtd_theme"],
     },
+    entry_points={
+        "streamz.sources": [
+            "from_postgres_cdc = streamz_postgres.sources:from_postgres_cdc",
+            "from_postgres_increment = "
+            "streamz_postgres.sources:from_postgres_increment",
+        ]
+    },
 )
