@@ -100,8 +100,13 @@ class from_postgres_cdc(PostgresSource):
         await super().do_poll()
 
     async def _do_backfill(self):
+        rows = 0
         async for row in self.strategy.backfill():
             await self.emit(row, asynchronous=True)
+            rows += 1
+            if rows % 100000 == 0:
+                logger.info(f"{self.table}: backfill is at {rows} rows and counting")
+        logger.info(f"{self.table}: finished backfilling {rows} rows")
 
 
 class from_postgres_increment(PostgresSource):
