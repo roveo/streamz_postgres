@@ -32,16 +32,39 @@ class XminIncrement(Strategy):
         self.xmin_end = None
 
     async def execute(self):
-        snapshot = await self.loader.execute(self.snapshot())
-        if snapshot[0]["snapshot"] == self.xmin_start:
+        self.xmin_end = await self.snapshot()
+        if self.xmin_end == self.xmin_start:
             return
-        count = await self.loader.execute(self.count(snapshot))
-        if count[0]["count"] == 0:
-            return
-        for query in self.load(count):
-            results = await self.loader.execute(query)
-            for row in results:
+        state = -1
+        while True:
+            res = await self.loader.execute(self.load(state))
+            for row in res:
+                state = max(state, row[self.pk])
                 yield row
+            if len(res) < self.limit:
+                break
+        self.xmin_start = self.xmin_end
+
+    async def backfill(self):
+        """Faster initial load."""
+        snapshot = await self.snapshot()
+        state = -1
+        query = SQL(
+            "select *, xmin "
+            "from {table} "
+            "where {pk} > {state} "
+            "order by {pk} limit {limit};"
+        )
+        while True:
+            res = await self.loader.execute(
+                query.format(state=Literal(state), **self.params)
+            )
+            for row in res:
+                state = max(state, row[self.pk])
+                if int(row["xmin"]) < snapshot:
+                    yield row
+            if len(res) < self.limit:
+                break
 
     @property
     def params(self):
@@ -53,35 +76,22 @@ class XminIncrement(Strategy):
             pk=Identifier(self.pk),
         )
 
-    @staticmethod
-    def snapshot():
-        return SQL("select txid_snapshot_xmin(txid_current_snapshot()) as snapshot;")
+    async def snapshot(self):
+        return (
+            await self.loader.execute(
+                SQL("select txid_snapshot_xmin(txid_current_snapshot()) as snapshot;")
+            )
+        )[0]["snapshot"]
 
-    def count(self, snapshot):
-        xmin = snapshot[0]["snapshot"]
-        self.xmin_end = int(xmin)
+    def load(self, from_pk):
         return SQL(
-            "select count(*) from {table} "
-            "where xmin::varchar::int >= {xmin_start} "
-            "and xmin::varchar::int < {xmin_end};"
-        ).format(**self.params)
-
-    def load(self, count):
-        cnt = count[0]["count"] or 0
-        if cnt == 0:
-            return
-        params = self.params
-        params["offset"] = Literal(0)
-        for page in range(cnt // self.limit + 1):
-            params["offset"] = Literal(page * self.limit)
-            yield SQL(
-                "select *, xmin, {xmin_end} as snapshot_xmin, now() as etl_ts "
-                "from {table} "
-                "where xmin::varchar::int >= {xmin_start} "
-                "and xmin::varchar::int < {xmin_end} "
-                "order by {pk} limit {limit} offset {offset};"
-            ).format(**params)
-        self.xmin_start = self.xmin_end
+            "select *, xmin "
+            "from {table} "
+            "where {pk} > {state} "
+            "and xmin::varchar::int >= {xmin_start} "
+            "and xmin::varchar::int < {xmin_end} "
+            "order by {pk} limit {limit};"
+        ).format(**self.params, state=Literal(from_pk))
 
 
 class Increment(Strategy):

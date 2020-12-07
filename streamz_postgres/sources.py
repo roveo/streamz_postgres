@@ -73,8 +73,10 @@ class from_postgres_cdc(PostgresSource):
         polling_interval=60,
         retry_count=0,
         retry_wait=10,
+        backfill=False,
         **kwargs,
     ):
+        self._backfill = backfill
         loader = PostgresLoader(
             **connection_params, retry_count=retry_count, retry_wait=retry_wait
         )
@@ -90,6 +92,16 @@ class from_postgres_cdc(PostgresSource):
             polling_interval=polling_interval,
             **kwargs,
         )
+
+    async def do_poll(self):
+        if self._backfill:
+            logger.info(f"{self.table}: performing backfill...")
+            await self._do_backfill()
+        await super().do_poll()
+
+    async def _do_backfill(self):
+        async for row in self.strategy.backfill():
+            await self.emit(row, asynchronous=True)
 
 
 class from_postgres_increment(PostgresSource):

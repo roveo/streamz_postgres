@@ -21,13 +21,15 @@ some select queries.
 
 # Usage
 
-There's a couple of requirements for the source table. First, it needs to have a primary
-key: that's what we're going to detect updates of. Second, it shouldn't be too big. The
-source is going to generate queries that are essentially sequence scans of the table,
-since you can't create indexes on `xmin` system column. You can overcome this with
-triggers and a dedicated integer column on the table, but it's not yet supported by this
-plugin. I'll probably add this functionality and write a tutorial on how to do this
-sometime in the future.
+There are some requirements for the source table.
+
+- It needs to have an integer primary key: that's what we're going to detect updates of.
+
+- It shouldn't be too big. The source is going to generate queries that are essentially
+  sequence scans of the table, since you can't create indexes on `xmin` system column.
+  You can overcome this with triggers and a dedicated integer column on the table, but
+  it's not yet supported by this plugin. I'll probably add this functionality and write
+  a tutorial on how to do this sometime in the future.
 
 ```py
 from streamz import Stream
