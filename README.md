@@ -25,8 +25,8 @@ There's a couple of requirements for the source table. First, it needs to have a
 key: that's what we're going to detect updates of. Second, it shouldn't be too big. The
 source is going to generate queries that are essentially sequence scans of the table,
 since you can't create indexes on `xmin` system column. You can overcome this with
-triggers and a dedicated integer column on the source, but it's not yet supported by the
-source. I'll probably add this functionality and write a tutorial on how to do this
+triggers and a dedicated integer column on the table, but it's not yet supported by this
+plugin. I'll probably add this functionality and write a tutorial on how to do this
 sometime in the future.
 
 ```py
