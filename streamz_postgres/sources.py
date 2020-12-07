@@ -42,6 +42,8 @@ class PostgresSource(Source):
             async for row in self.strategy.execute():
                 await self.emit(row, asynchronous=True)
                 rows += 1
+                if rows % 100000 == 0:
+                    logger.info(f"{self.table}: emitted {rows} rows and counting")
             if rows == 0:
                 logger.info(f"{self.table}: no new rows")
                 delay = dmax
