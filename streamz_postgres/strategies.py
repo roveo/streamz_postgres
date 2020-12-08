@@ -55,7 +55,7 @@ class XminIncrement(Strategy):
         snapshot = await self.snapshot()
         state = -1
         query = SQL(
-            "select *, xmin "
+            "select *, xmin, {xmin_end} as snapshot_xmin "
             "from {table} "
             "where {pk} > {state} "
             "order by {pk} limit {limit};"
@@ -90,7 +90,7 @@ class XminIncrement(Strategy):
 
     def load(self, from_pk):
         return SQL(
-            "select *, xmin "
+            "select *, xmin, {xmin_end} as snapshot_xmin "
             "from {table} "
             "where {pk} > {state} "
             "and xmin::varchar::int >= {xmin_start} "
