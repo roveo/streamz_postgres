@@ -32,9 +32,12 @@ class XminIncrement(Strategy):
         self.xmin_end = None
 
     async def execute(self):
-        self.xmin_end = await self.snapshot()
-        if self.xmin_end == self.xmin_start:
+        snapshot = await self.snapshot()
+        if snapshot == self.xmin_start:  # no new transactions
             return
+        self.xmin_end = snapshot
+        if snapshot < self.xmin_start:  # handle txid wraparound
+            self.xmin_end = 2 ** 32
         state = -1
         while True:
             res = await self.loader.execute(self.load(state))
@@ -44,6 +47,8 @@ class XminIncrement(Strategy):
             if len(res) < self.limit:
                 break
         self.xmin_start = self.xmin_end
+        if snapshot < self.xmin_start:
+            self.xmin_start = 0
 
     async def backfill(self):
         """Faster initial load."""
