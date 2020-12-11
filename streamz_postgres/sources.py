@@ -17,7 +17,7 @@ class PostgresSource(Source):
         polling_interval: Union[int, Tuple[int, int]] = 60,
         **kwargs,
     ):
-        super().__init__(ensure_io_loop=True, **kwargs)
+        super().__init__(**kwargs)
         self.strategy = strategy
         self.table = strategy.table
         if isinstance(polling_interval, int):
