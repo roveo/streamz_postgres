@@ -1,3 +1,4 @@
+import asyncio
 import random
 
 from psycopg2.sql import SQL, Identifier, Literal
@@ -40,3 +41,15 @@ class Writer:
                 )
             self.connection.commit()
             self.size += n
+
+
+def async_generator_to_list(gen):
+    loop = asyncio.get_event_loop()
+
+    async def unwrap():
+        res = []
+        async for item in gen:
+            res.append(item)
+        return res
+
+    return loop.run_until_complete(unwrap())

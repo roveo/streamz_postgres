@@ -70,6 +70,7 @@ class XminIncrement(Strategy):
                     yield row
             if len(res) < self.limit:
                 break
+        self.xmin_start = snapshot  # start from loaded snapshot
 
     @property
     def params(self):

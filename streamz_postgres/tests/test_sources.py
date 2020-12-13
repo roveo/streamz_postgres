@@ -61,3 +61,18 @@ def test_increment(pg):
 
     w.insert(2)
     wait_for(lambda: len(L) == 20, 2, period=0.1)
+
+
+def test_increment_restart(pg):
+    table = "inc_re"
+    src = Stream.from_postgres_increment(
+        table, pg, initial_value=30, polling_interval=1, limit=10
+    )
+    L = src.sink_to_list()
+
+    w = Writer(src.strategy.loader.connection, table)
+    w.create_table()
+    w.insert(50)
+    src.start()
+
+    wait_for(lambda: len(L) == 20, 1, period=0.1)
