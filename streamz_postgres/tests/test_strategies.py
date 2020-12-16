@@ -16,6 +16,7 @@ def test_xmin_backfill(pg):
 
     assert len(res) == 10
     assert strategy.xmin_start != -1
+    assert res[0]["snapshot_xmin"] is not None
 
     writer.update(3)
     writer.insert(3)

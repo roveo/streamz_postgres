@@ -55,14 +55,16 @@ class XminIncrement(Strategy):
         snapshot = await self.snapshot()
         state = -1
         query = SQL(
-            "select *, xmin, {xmin_end} as snapshot_xmin "
+            "select *, xmin, {snapshot} as snapshot_xmin "
             "from {table} "
             "where {pk} > {state} "
             "order by {pk} limit {limit};"
         )
         while True:
             res = await self.loader.execute(
-                query.format(state=Literal(state), **self.params)
+                query.format(
+                    state=Literal(state), snapshot=Literal(snapshot), **self.params
+                )
             )
             for row in res:
                 state = max(state, row[self.pk])
