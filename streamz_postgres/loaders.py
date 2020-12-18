@@ -4,7 +4,7 @@ import time
 
 import psycopg2
 from psycopg2.extras import DictCursor
-from psycopg2.sql import SQL, Composed
+from psycopg2.sql import SQL, Composed, Identifier, Literal
 from tornado.ioloop import IOLoop
 
 logger = logging.getLogger(__name__)
@@ -99,5 +99,11 @@ class PostgresLoader(Loader):
             "from information_schema.tables "
             "where table_schema not in ('information_schema', 'pg_catalog') "
             "order by table_schema, table_name;"
+        )
+        return await self.execute(sql)
+
+    async def lookup(self, table, key, values):
+        sql = SQL("select * from {table} where {key} in {values};").format(
+            table=Identifier(table), key=Identifier(key), values=Literal(values)
         )
         return await self.execute(sql)

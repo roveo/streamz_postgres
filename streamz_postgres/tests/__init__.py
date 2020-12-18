@@ -1,5 +1,6 @@
 import asyncio
 import random
+from uuid import uuid4
 
 from psycopg2.sql import SQL, Identifier, Literal
 
@@ -53,3 +54,10 @@ def async_generator_to_list(gen):
         return res
 
     return loop.run_until_complete(unwrap())
+
+
+def uuid(n=None):
+    if n is None:
+        return str(uuid4())
+    else:
+        return [str(uuid4()) for _ in range(n)]

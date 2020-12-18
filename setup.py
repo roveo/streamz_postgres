@@ -18,6 +18,7 @@ setup(
             "from_postgres_cdc = streamz_postgres.sources:from_postgres_cdc",
             "from_postgres_increment = "
             "streamz_postgres.sources:from_postgres_increment",
-        ]
+        ],
+        "streamz.nodes": ["postgres_lookup = streamz_postgres.nodes:postgres_lookup"],
     },
 )

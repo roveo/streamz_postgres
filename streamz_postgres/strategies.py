@@ -126,8 +126,7 @@ class Increment(Strategy):
 
     def query(self):
         return SQL(
-            "select *, xmin, now() as etl_ts "
-            "from {table} where {column} > {state} "
+            "select * from {table} where {column} > {state} "
             "order by {column} limit {limit};"
         ).format(
             table=Identifier(*self.table),

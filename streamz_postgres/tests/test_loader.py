@@ -2,6 +2,7 @@ import asyncio
 
 import pytest
 from streamz_postgres.loaders import PostgresLoader, retry
+from streamz_postgres.tests import Writer
 
 
 def test_loader(pg):
@@ -45,3 +46,15 @@ def test_retry_fail():
 
     with pytest.raises(Exception):
         _()
+
+
+def test_lookup(pg):
+    loader = PostgresLoader(**pg)
+    writer = Writer(loader.connection, "lookup_source")
+    writer.create_table()
+    writer.insert(10)
+
+    loop = asyncio.get_event_loop()
+    res = loop.run_until_complete(loader.lookup("lookup_source", "id", (3, 4, 6, 9)))
+
+    assert len(res) == 4
