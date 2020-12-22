@@ -2,6 +2,8 @@
 
 ![Build status](https://github.com/roveo/streamz_postgres/workflows/Python%20package/badge.svg)
 
+***API of this plugin is considered unstable and subject to change without notice!***
+
 Home-made Postgres CDC for Streamz.
 
 Detecting changes in databases is a hard problem. Most solutions require extensive
