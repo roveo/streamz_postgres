@@ -1,4 +1,5 @@
 import shlex
+import os
 import subprocess
 import time
 
@@ -19,12 +20,15 @@ def stop(fail=False):
 
 @pytest.fixture(scope="session")
 def pg():
+    cwd = os.path.dirname(os.path.abspath(__file__))
     cmd = shlex.split(
         f"docker run -d --rm --name {NAME} -p 5432:5432 "
-        "-e POSTGRES_USER=test -e POSTGRES_PASSWORD=test postgres"
+        f"-v {cwd}/postgresql/postgresql.conf:/etc/postgresql/postgresql.conf "
+        "-e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=test postgres "
+        "-c 'config_file=/etc/postgresql/postgresql.conf'"
     )
-    subprocess.check_call(cmd)
-    params = dict(host="localhost", dbname="test", user="test", password="test")
+    subprocess.check_call(cmd, cwd=cwd)
+    params = dict(host="localhost", dbname="postgres", user="postgres", password="test")
     for _ in range(30):
         try:
             psycopg2.connect(**params)
